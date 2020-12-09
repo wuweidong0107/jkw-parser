@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "usage: $0 file"
+fi
+
+echo 
+echo -e "----------------------------\n"
+
+LINE=$(cat $1 | sed 's/\t/ /g' | sed '/^$/d' | sed 's/^[ \t]*//g' | sed 's/[ \t]*$//g' | tr -s " \t\n" | wc -l)
+echo -e "line: ${LINE}\n"
+cat $1 | sed 's/\t/ /g' | sed '/^$/d' | sed 's/^[ \t]*//g' | sed 's/[ \t]*$//g' | tr -s " \t\n"
+
+echo -e "\n----------------------------"
+echo 

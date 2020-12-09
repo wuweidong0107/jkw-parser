@@ -1,0 +1,238 @@
+#!/bin/bash
+
+function print_result()
+{
+    echo $(cat /tmp/jkw-cparset.txt | wc -l )
+    echo ---
+    cat /tmp/jkw-cparset.txt
+}
+
+function parse_cpp()
+{
+    local part
+
+    if [ -n "${PART}" ]; then
+        part=${PART}
+    else
+        part="class function variable struct macro"
+    fi
+
+    echo -e '-----------------------------------------------------'
+    for i in ${part}; do
+        echo ${i}
+    done
+    echo -e '-----------------------------------------------------'
+    echo -e '\n'
+
+    for i in ${part}; do
+        echo -e '-----------------------------------------------------'
+        echo -e "$i:\n"
+
+        if [ "${i}" = "struct" ]; then
+            ctags -x --c++-kinds=+p --fields=+iaS --language-force=C++ ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "struct") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | sed 's/{//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        else
+            ctags -x --c++-kinds=+p --fields=+iaS --language-force=C++ ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "'$i'") {
+                    for(i=5; i<=NF+1; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        fi
+
+        echo -e '\n'
+    done
+}
+
+function parse_c()
+{
+    local part
+
+    if [ -n "${PART}" ]; then
+        part=${PART}
+    else
+        part="public_func private_var public_var private_func struct macro"
+    fi
+
+    echo -e '-----------------------------------------------------'
+    for i in ${part}; do
+        echo ${i}
+    done
+    echo -e '-----------------------------------------------------'
+    echo -e '\n'
+
+    for i in ${part}; do
+
+        echo -e '-----------------------------------------------------'
+        echo -e "$i:\n"
+        if [ "${i}" = "public_func" ]; then
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "function") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | grep -v static | sed 's/{//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        elif [ "${i}" = "private_func" ]; then
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "function") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | grep static | sed 's/{//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        elif [ "${i}" = "private_var" ]; then
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "variable") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | grep static | sed 's/{//' | sed 's/=//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        elif [ "${i}" = "public_var" ]; then
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "variable") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | grep -v static | sed 's/{//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        elif [ "${i}" = "struct" ]; then
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "struct") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | sed 's/{//' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        else
+            ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{
+                if ($2 == "'$i'") {
+                    for(i=5; i<=NF; ++i) printf "%s ", $i;
+                    print ""
+                }
+            }' | tr -s ' ' >/tmp/jkw-cparset.txt
+            print_result
+        fi
+
+        echo -e '\n'
+    done
+}
+
+function parse_h()
+{
+    local part
+
+    if [ -n "${PART}" ]; then
+        part=${PART}
+    else
+        part="public_func private_var public_var private_func struct macro"
+    fi
+
+    echo -e '-----------------------------------------------------'
+    for i in ${part}; do
+        echo ${i}
+    done
+
+    for i in ${part}; do
+        echo -e '-----------------------------------------------------'
+        echo -e "$i:\n"
+
+        ctags -x ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{ 
+            if ($2 == "'$i'"){
+                for(i=5; i<=NF; ++i) printf "%s ", $i;
+                print ""
+            }
+        }' >/tmp/jkw-cparset.txt
+        print_result
+    done
+    echo -e '\n'
+}
+
+function parse_hpp()
+{
+
+    local part
+
+    if [ -n "${PART}" ]; then
+        part=${PART}
+    else
+        part="namespace class prototype member struct"
+    fi
+
+    echo -e '-----------------------------------------------------'
+    for i in ${part}; do
+        echo ${i}
+    done
+
+    for i in ${part}; do
+        echo -e '-----------------------------------------------------'
+        echo -e "$i:\n"
+
+        ctags -x --c++-kinds=+p --fields=+iaS --language-force=C++ ${F} | tr -s ' ' | sort -t' ' -k 3 -n | awk '{ 
+            if ($2 == "'$i'"){
+                for(i=5; i<=NF; ++i) printf "%s ", $i;
+                print ""
+            }
+        }' >/tmp/jkw-cparset.txt
+        print_result
+    done
+    echo -e '\n'
+}
+
+function usage()
+{
+    echo -e "\n$0 file [suffix] [part]\n"
+    echo "C:"
+    echo -e " example:"
+    echo -e "\t jkw-cparser xxx.c"
+    echo -e "\t jkw-cparser xxx.c c"
+    echo -e "\t jkw-cparser xxx.c c private_func"
+    echo -e "\t jkw-cparser retroarch.h h struct\n"
+    echo -e " avaliable part:"
+    echo -e "\t c file: public_func private_var public_var private_func struct macro"
+    echo -e "\t h file: struct macro function enum typedef"
+
+    echo "C++:"
+    echo -e " example:"
+    echo -e "\t jkw-cparser xxx.cpp"
+    echo -e "\t jkw-cparser xxx.cpp cpp"
+    echo -e "\t jkw-cparser xxx.cpp class"
+    echo -e " avaliable part:"
+    echo -e "\t cpp file: class function variable struct macro"
+    echo -e "\t hpp file: namespace class prototype member struct"
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 0
+fi
+
+F=$1
+
+if [ -n "${2}" ]; then
+    SUFFIX=${2}
+else
+    SUFFIX=${F##*.}
+fi
+
+if [ -n "${3}" ]; then
+    PART=${3}
+fi
+
+
+if [ "${SUFFIX}" = "c" ]; then
+    parse_c
+elif [ "${SUFFIX}" = "cpp" ]; then
+    parse_cpp
+elif [ "${SUFFIX}" = "h" ]; then
+    parse_h
+elif [ "${SUFFIX}" = "hpp" ]; then
+    parse_hpp
+fi

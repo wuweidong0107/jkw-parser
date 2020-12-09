@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    echo "$0 file"
+    exit 0
+fi
+
+grep -P "^\t[a-z].+ {" $1 | sed 's/\t//'

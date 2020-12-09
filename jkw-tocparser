@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function usage()
+{
+    echo -e "\n$0 file [input file]\n"
+}
+
+if [ $# -eq 1 ]; then
+    input_file=$1
+else
+    usage
+    exit 1
+fi
+
+sed 's/[0-9][0-9]*$//g' ${input_file} > /tmp/jkw-toc.txt
+input_file=/tmp/jkw-toc.txt
+
+while read line; do
+    dot_num=`echo ${line} | tr -cd . | wc -c`
+    i=0
+    while [ $i -lt ${dot_num} ]; do
+        echo -e "\t\c"
+        i=$((i+1))
+    done
+    echo ${line}
+done < ${input_file}
